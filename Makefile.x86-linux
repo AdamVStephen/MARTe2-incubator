@@ -1,3 +1,8 @@
 export TARGET=x86-linux
 
-include Makefile.inc
+#include Makefile.inc.1
+#include Makefile.inc.2
+#include Makefile.inc.3
+#include Makefile.inc.4
+include Makefile.inc.5
+#include Makefile.inc.6
