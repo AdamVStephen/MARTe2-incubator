@@ -14,7 +14,9 @@ MAKEDEFAULTDIR=$(MARTe2_DIR)/MakeDefaults
 include $(MAKEDEFAULTDIR)/MakeStdLibDefs.$(TARGET)
 
 LIBRARIES_STATIC=$(BUILD_DIR)/GPS/GPS$(LIBEXT)
-LIBRARIES_STATIC+=$(ROOT_DIR)/Build/$(TARGET)/Components/Lib/DataSourceSignalChecker/DataSourceSignalChecker$(LIBEXT)
+
+# Test compilation fails if the following static library is also linked in due to multiply defined symbols.
+#LIBRARIES_STATIC+=$(ROOT_DIR)/Build/$(TARGET)/Components/Lib/DataSourceSignalChecker/DataSourceSignalChecker$(LIBEXT)
 
 ifeq ($(TARGET), rpi4)
 LIBRARIES_STATIC+=$(BUILD_DIR)/RaspPiSerial/RaspPiSerial$(LIBEXT)
