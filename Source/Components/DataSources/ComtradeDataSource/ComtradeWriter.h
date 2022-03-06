@@ -69,12 +69,15 @@ namespace MARTe {
  * The configuration syntax is (names are only given as an example):
  *
  * <pre>
+ *
+ * 2022-03-06 STATUS of Documentation is lagging far behind implementation. TOFIX Adam Stephen
  * +ComtradeWriter_0 = {
  *     Class = ComtradeWriter
  *     NumberOfBuffers = 10 //Compulsory. Number of buffers in the circular buffer defined above. Each buffer is capable of holding a copy of all the DataSourceI signals.
  *     CPUMask = 0xFEu //Compulsory. Affinity assigned to the threads responsible for asynchronously flush data into the file.
  *     StackSize = 10000000 //Compulsory. Stack size of the thread above.
  *     Filename = "test.bin" //Optional. If not set the filename shall be set using the OpenFile RPC.
+ *     FilenamePrefix = "test.bin" //Compulsory. If not set the filename shall be set using the OpenFile RPC.
  *     Overwrite = "yes" //Compulsory. If "yes" the file will be overwritten, otherwise new data will be added to the end of the existent file.
  *     FileFormat = "binary" //Compulsory. Possible values are: binary and csv.
  *     CSVSeparator = "," //Compulsory if Format=csv. Sets the file separator type.
@@ -283,6 +286,12 @@ public:
     const StreamString& GetFilename() const;
 
     /**
+     * @brief Gets the configured filename prefix
+     * @return the configured filename prefix.
+     */
+    const StreamString& GetFilenamePrefix() const;
+
+     /**
      * @brief Gets the configured FileFormat.
      * @return the configured FileFormat.
      */
@@ -383,6 +392,11 @@ private:
      * The name of the file where data will be stored.
      */
     StreamString filename;
+
+    /**
+     * The prefix name of the file where data will be stored. On RotateFile events a suffix is added.
+     */
+    StreamString filenamePrefix;
 
     /**
      * True if the file is to be overwritten.

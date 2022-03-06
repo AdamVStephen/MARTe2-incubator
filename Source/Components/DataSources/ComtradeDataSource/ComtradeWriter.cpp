@@ -63,6 +63,7 @@ namespace MARTe {
 			numberOfBinaryBytes = 0u;
 			fileFormat = FILE_FORMAT_BINARY;
 			filename = "";
+			filenamePrefix = "";
 			fatalFileError = false;
 			overwrite = false;
 			refreshContent = 0u;
@@ -304,6 +305,15 @@ namespace MARTe {
 				REPORT_ERROR(ErrorManagement::Information, "Filename was set to %s", filename.Buffer());
 			}
 		}
+		if (ok) {
+			if (!data.Read("FilenamePrefix", filenamePrefix)) {
+				REPORT_ERROR(ErrorManagement::Warning, "The FilenamePrefix was not specified. It will have to be later set using the RPC mechanism.");
+			}
+			else {
+				REPORT_ERROR(ErrorManagement::Information, "FilenamePrefix was set to %s", filenamePrefix.Buffer());
+			}
+		}
+
 
 		uint32 storeOnTriggerU = 0u;
 		if (ok) {
@@ -711,7 +721,7 @@ namespace MARTe {
 				// FixMe : Sleep.h returns 32 bit time() : need 64 bit post 2037
 				secondsFromEpoch = Sleep::GetDateSeconds();
 				ts.ConvertFromEpoch(secondsFromEpoch);
-				newFile.Printf("%s.%-4d%-02d-%02d@%02d:%02d:%02d", filename.Buffer(), 
+				newFile.Printf("%s.%04d-%02d-%02d@%02d:%02d:%02d", filenamePrefix.Buffer(), 
 						ts.GetYear(), ts.GetMonth(), ts.GetDay(), ts.GetHour(), ts.GetMinutes(), ts.GetSeconds());
 				break;
 
@@ -719,20 +729,43 @@ namespace MARTe {
 				// FixMe : Sleep.h returns 32 bit time() : need 64 bit post 2037
 				secondsFromEpoch = Sleep::GetDateSeconds();
 				ts.ConvertFromEpoch(secondsFromEpoch);
-				newFile.Printf("%s.%-4d%-02d-%02d@%02d:%02d:%02d", filename.Buffer(), 
+				newFile.Printf("%s.%04d-%02d-%02d@%02d:%02d:%02d", filenamePrefix.Buffer(), 
 						ts.GetYear(), ts.GetMonth(), ts.GetDay(), ts.GetHour(), ts.GetMinutes(), ts.GetSeconds());
 				break;
 		};
 
 
 		ErrorManagement::ErrorType err(ok);
-		err = CloseFile();
-		if (err) {
-			REPORT_ERROR(ErrorManagement::FatalError, "Could not CloseFile to rotate from %s [%s]", filename.Buffer(), newFile.Buffer());
-			return err;
-		} 
+		/*
+		   err = CloseFile();
+		   if (err) {
+		   REPORT_ERROR(ErrorManagement::FatalError, "Could not CloseFile to rotate from %s [%s]", filename.Buffer(), newFile.Buffer());
+		   return err;
+		   } 
+		   */
+		if (outputFile.IsOpen()) {
+			ok = outputFile.Flush();
+		}
+
+		if (!ok) {
+			REPORT_ERROR(ErrorManagement::FatalError, "Could not perform outputFile.Flush on %s ", filename.Buffer());
+			ErrorManagement::ErrorType gerr(ok); 
+			return gerr;
+		}
+		if (outputFile.IsOpen()) {
+			//err = !outputFile.Close();
+			ok = outputFile.Close();
+		}
+		if (!ok) {
+			REPORT_ERROR(ErrorManagement::FatalError, "Could not perform outputFile.Close on %s ", filename.Buffer());
+			ErrorManagement::ErrorType gerr(ok); 
+			return gerr; 
+		}
+
 		err = OpenFile(newFile.Buffer());
-		if (err) {
+		// TODO: get a handle on standards for MARTe2 error reporting. These seem inconsistent.
+		bool wtf = err.ErrorsCleared();
+		if (!wtf) {
 			REPORT_ERROR(ErrorManagement::FatalError, "Could not OpenFile to rotate from %s [%s]", filename.Buffer(), newFile.Buffer());
 			return err;
 		} 
@@ -839,7 +872,7 @@ namespace MARTe {
 		}
 		DataSourceI::Purge(purgeList);
 	}
-	
+
 	uint64 ComtradeWriter::GetCurrentNumberOfLines() const {
 		return currentNumberOfLines;
 	}
